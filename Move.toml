@@ -1,0 +1,14 @@
+[package]
+name = 'Vault'
+version = '1.0.0'
+
+
+[dependencies.AptosFramework]
+git = 'https://github.com/davidiw/aptos-core.git'
+rev = 'conversions'
+subdir = 'aptos-move/framework/aptos-framework'
+
+
+[addresses]
+vault = "0x123123"
+vault_test = "0x123"

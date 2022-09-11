@@ -1,0 +1,122 @@
+ // This code is modification of hippo.space's code for testing 
+#[test_only]
+module vault::mock_coin {
+    use aptos_framework::coin;
+    use aptos_framework::type_info;
+    use std::string::{Self};
+    use std::signer;
+    use aptos_framework::coins;
+    use aptos_framework::account;
+    //use std::debug;
+
+    spec module {
+        pragma verify = false;
+    }
+
+    struct TokenSharedCapability<phantom TokenType> has key {
+        burn: coin::BurnCapability<TokenType>,
+        freeze: coin::FreezeCapability<TokenType>,
+        mint: coin::MintCapability<TokenType>,
+
+    }
+
+    // mock BTC token
+    struct WBTC has copy, drop, store {}
+
+    // mock ETH token
+    struct WETH has copy, drop, store {}
+
+    // mock USDT token
+    struct WUSDT has copy, drop, store {}
+
+    // mock USDC token
+    struct WUSDC has copy, drop, store {}
+
+    // mock DAI token
+    struct WDAI has copy, drop, store {}
+
+    // mock DOT token
+    struct WDOT has copy, drop, store {}
+
+    // mock SOL token
+    struct WSOL has copy, drop, store {}
+
+    // mock ZLN token
+    struct ZLN has copy, drop, store {}
+
+
+    public fun initialize<TokenType>(account: &signer, decimals: u8){
+        let name = string::utf8(type_info::struct_name(&type_info::type_of<TokenType>()));
+        let (burn_capability, freeze_capability ,mint_capability) = coin::initialize<TokenType>(
+            account,
+            name,
+            name,
+            decimals,
+            true
+        );
+
+        let account_addr = signer::address_of(account);
+
+        if(!account::exists_at(account_addr)){
+            aptos_framework::account::create_account(account_addr);
+        };
+
+        if (!coin::is_account_registered<TokenType>(account_addr)) {
+            register<TokenType>(account);
+            
+        };
+
+        move_to(account, TokenSharedCapability { burn: burn_capability, freeze : freeze_capability ,mint: mint_capability });
+    }
+
+    public fun mint<TokenType>(amount: u64): coin::Coin<TokenType> acquires TokenSharedCapability{
+        //token holder address
+        let addr = type_info::account_address(&type_info::type_of<TokenType>());
+        let cap = borrow_global<TokenSharedCapability<TokenType>>(addr);
+        coin::mint<TokenType>( amount, &cap.mint,)
+    }
+
+    public fun burn<TokenType>(tokens: coin::Coin<TokenType>) acquires TokenSharedCapability{
+        //token holder address
+        let addr = type_info::account_address(&type_info::type_of<TokenType>());
+        let cap = borrow_global<TokenSharedCapability<TokenType>>(addr);
+        coin::burn<TokenType>(tokens, &cap.burn);
+    }
+
+    public fun faucet_mint_to<TokenType>(to: &signer, amount: u64) acquires TokenSharedCapability {
+        let to_addr = signer::address_of(to);
+        
+        if(!account::exists_at(to_addr)){
+            aptos_framework::account::create_account(to_addr);
+        };
+        if (!coin::is_account_registered<TokenType>(to_addr)) {
+            register<TokenType>(to);
+            
+        };
+        let coin = mint<TokenType>(amount);
+        coin::deposit(to_addr, coin);
+        
+    }
+
+    public entry fun faucet_mint_to_script<TokenType>(to: &signer, amount: u64) acquires  TokenSharedCapability {
+        faucet_mint_to<TokenType>(to, amount);
+    }
+
+
+     public fun register<CoinType>(account: &signer) {
+        coins::register<CoinType>(account);
+    }
+
+    #[test(admin=@vault, user=@0x1234567)]
+    public entry fun test_mint_script(admin: &signer, user: &signer) acquires TokenSharedCapability {
+        initialize<WETH>(admin, 6);
+        faucet_mint_to_script<WETH>(user, 1000000);
+    }
+
+}
+
+
+
+
+
+
