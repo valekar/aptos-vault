@@ -10,7 +10,7 @@ Any tokens types could be stored.
 
 Vault module could be directly installed in your module by specifying the address in `Move.toml` file.
 
-**Note: The [example](https://github.com/valekar/aptos-vault/example) folder contains an example implementation of `Vault`  module.** 
+**Note: The [example](https://github.com/valekar/aptos-vault/tree/main/example) folder contains an example implementation of `Vault`  module.** 
 
 Your can add in module dependency as shown below 
 
