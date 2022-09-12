@@ -75,7 +75,7 @@ To withdraw deposited tokens, users must hold the issued `Receipt Tokens`.
 
 The below image shows an overview of the architecture.
 
-<img src="/docs/vault.png" alt="Vault architecture" style="height: 350px; width:350px;"/>
+<img src="/docs/vault.png" alt="Vault architecture" style="height: 550px; width:550px;"/>
 
 ### Resources and Structs
 
