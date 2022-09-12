@@ -81,7 +81,7 @@ The below image shows an overview of the architecture.
 
 There are totally 5 struct we define for `Vault`.   
 
-```move 
+```rust 
     struct Reserve<phantom TokenType> has key {
         name : vector<u8>, // ---> 1
         version : u8, // ---> 2
@@ -103,7 +103,7 @@ Let us see what each field means in the above `struct` (resource)
 
 The `Receipt` resource is used to mint receipt tokens
 
-```move
+```rust
     struct Receipt<phantom TokenType> has store {
         receipt_coin : Coin<RToken<TokenType>>, // ---> 1
         capabilities : RTokenCapabalities<TokenType> ---> 2
@@ -114,7 +114,7 @@ The `Receipt` resource is used to mint receipt tokens
 2. `capabilities` field is used for minting/burning of `RToken<TokenType>` type tokens. The capabilities are stored in the struct itself so that it will be easier to burn/mint tokens 
 
 
-```move 
+```rust 
     struct RTokenCapabalities<phantom TokenType> has store {
         burn_cap: BurnCapability<RToken<TokenType>>, ---> 1
         freeze_cap : FreezeCapability<RToken<TokenType>>, ---> 2
@@ -131,14 +131,14 @@ The capabilites are stored in `RTokenCapabalities`
 
  
    
-```move
+```rust
     struct RToken<phantom TokenType> has key ,store, drop { }
 ```
 
 The above `struct` is a Receipt token that is created and issued to user in exchange for depositing the token of type `TokenType`
 
 
-```move
+```rust
     struct Liquidity<phantom TokenType> has  store{
         liquidity_tokens : Coin<TokenType>,
     }
@@ -153,7 +153,7 @@ Let us look at instructions available in `Vault` module.
 
 Anyone can initialize a token reserve. However, once initialized, it cannot be re-initialized again to the same account address.
 
-```move 
+```rust 
      /// Initialize the reserve, user who creates this reseve owns it 
     public entry fun init_reserve<TokenType>(admin : &signer, receive_token_decimals : u8) {
         create_reserve<TokenType>(admin, receive_token_decimals);
@@ -171,7 +171,7 @@ To deposit tokens to a reserve of a `TokenType`, it needs to be initialized firs
 
 The below instruction is used for depositing to a reserve
 
-```move 
+```rust 
     /// Deposit the liquidity to the reserve and mint and deposit the receipt tokens back to the user
     public entry fun deposit_liquidity<TokenType>(sender : &signer , amount : u64) acquires Reserve {
         let admin_addr = config::ADMIN_ADDRESS();
@@ -191,7 +191,7 @@ When user deposits tokens, an equal amount of `Receipt Tokens` are issued to the
 
 To withdraw tokens, the following instruction is used
 
-```move
+```rust
     /// withdraw the deposited tokens back from reserve. The user should give back the lp tokens
     public entry fun withdraw_liquidity<TokenType>(sender: &signer, amount : u64) acquires Reserve {
         let admin_addr = config::ADMIN_ADDRESS();
@@ -213,7 +213,7 @@ Only admins(one who instantiated reserve) can pause deposits/withdrawals of toke
 
 The below instruction is used to pause deposit/withdaw tokens
 
-```move
+```rust
    /// public function to pause the reserves deposit/ withdraw
     public entry fun pause_reserve<TokenType>(sender : &signer) acquires Reserve{
         pause_reseve_<TokenType>(sender);
@@ -224,7 +224,7 @@ The below instruction is used to pause deposit/withdaw tokens
 
 This is used by admins to unpause a reserve of `TokenType`. 
 
-```move
+```rust
     /// public function to pause the reserves deposit/ withdraw
     public entry fun unpause_reserve<TokenType>(sender : &signer) acquires Reserve{
         unpause_reseve_<TokenType>(sender);
