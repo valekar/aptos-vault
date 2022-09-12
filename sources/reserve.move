@@ -31,18 +31,18 @@ module vault::reserve {
 
 
     
-     /// resource storing 
+     ///Liquidity resource storing 
     struct Liquidity<phantom TokenType> has  store{
         liquidity_tokens : Coin<TokenType>,
     }
 
-    /// collateral storing and creation
+    /// Receipt storing and creation
     struct Receipt<phantom TokenType> has store {
         receipt_coin : Coin<RToken<TokenType>>,
         capabilities : RTokenCapabalities<TokenType>
     }
 
-    ///capabilities belongs to collateral 
+    ///capabilities belonging to Receipt 
     struct RTokenCapabalities<phantom TokenType> has store {
         burn_cap: BurnCapability<RToken<TokenType>>,
         freeze_cap : FreezeCapability<RToken<TokenType>>,
