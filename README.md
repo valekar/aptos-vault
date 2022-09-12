@@ -10,7 +10,7 @@ Any tokens types could be stored.
 
 Vault module could be directly installed in your module by specifying the address in `Move.toml` file.
 
-**Note: The [example](https://github.com/valekar/aptos-vault/tree/main/example) folder contains an example implementation of `Vault`  module.** 
+**Note: The [example](/example) folder contains an example implementation of `Vault`  module.** 
 
 Your can add in module dependency as shown below 
 
@@ -75,7 +75,7 @@ To withdraw deposited tokens, users must hold the issued `Receipt Tokens`.
 
 The below image shows an overview of the architecture.
 
-[vault](docs/vault.png){:height="250px" width="250px"}
+<img src="/docs/vault.png" alt="Vault architecture" style="height: 350px; width:350px;"/>
 
 ### Resources and Structs
 
