@@ -13,7 +13,7 @@ module vault::reserve {
     const EUNAUTHORISED :u64 =  2006; 
 
      /// Reserve is frozen. Tokens cannot be deposited or withdrawn
-    const EFROZEN: u64 = 10;
+    const EFROZEN: u64 = 2007;
 
 
     /// Reserve for storing the liquidity of the TokenType and issue receipt token for storing liquidity
@@ -52,6 +52,8 @@ module vault::reserve {
 
 
     /// Initialize the receipt tokens for giving back to users if deposited with 
+    /// Returns the Receipt token capabilities
+    /// Let the symbol and name of the receipt token be the struct name of RToken<TokenType>
     fun init_receipt_token<TokenType>(sender : &signer, decimals : u8, supply_monitor : bool) : RTokenCapabalities<TokenType> {
         let name = string::utf8(type_info::struct_name(&type_info::type_of<RToken<TokenType>>())); 
         let symbol = name;        
@@ -62,27 +64,28 @@ module vault::reserve {
             coins::register<RToken<TokenType>>(sender);
         };
 
-        let lp_token_capablities = RTokenCapabalities<TokenType> {
+        let receive_token_capablities = RTokenCapabalities<TokenType> {
             mint_cap : mint_cap,
             burn_cap : burn_cap,
             freeze_cap : freeze_cap
         };
 
-        lp_token_capablities
+        receive_token_capablities
     }
 
     /// Create reserve for storing the liquidity of the TokenType
-    fun  create_reserve<TokenType>(admin : &signer, lp_token_decimals:u8) {
+    /// Let the name of the reserve be struct name of <TokenType>
+    fun  create_reserve<TokenType>(admin : &signer, receive_token_decimals:u8) {
         config::create_account_if_not_existing(signer::address_of(admin));
 
         let name = type_info::struct_name(&type_info::type_of<TokenType>()); 
         let version = 0;
 
-        let lp_token_capablities = init_receipt_token<TokenType>(admin, lp_token_decimals, true);
+        let receive_token_capablities = init_receipt_token<TokenType>(admin, receive_token_decimals, true);
 
         let receipt = Receipt {
             receipt_coin : coin::zero<RToken<TokenType>>(),
-            capabilities : lp_token_capablities
+            capabilities : receive_token_capablities
         };
         
 
@@ -102,8 +105,8 @@ module vault::reserve {
 
 
      /// Initialize the reserve, user who creates this reseve owns it 
-    public entry fun init_reserve<TokenType>(admin : &signer, lp_token_decimals : u8) {
-        create_reserve<TokenType>(admin, lp_token_decimals);
+    public entry fun init_reserve<TokenType>(admin : &signer, receive_token_decimals : u8) {
+        create_reserve<TokenType>(admin, receive_token_decimals);
     }
 
     /// private function for depositing tokens
@@ -124,8 +127,8 @@ module vault::reserve {
         let tokens = coin::withdraw<TokenType>(sender, amount);
         coin::merge<TokenType>(liquidity_tokens, tokens);
 
-        let lp_token_cap = &reserve.receipt.capabilities;
-        let lp_tokens = coin::mint<RToken<TokenType>>(amount, &lp_token_cap.mint_cap);
+        let receive_token_cap = &reserve.receipt.capabilities;
+        let receive_tokens = coin::mint<RToken<TokenType>>(amount, &receive_token_cap.mint_cap);
         let depositor = signer::address_of(sender);
 
         if(!coin::is_account_registered<RToken<TokenType>>(depositor)) {
@@ -133,12 +136,12 @@ module vault::reserve {
         };
 
         config::create_account_if_not_existing(depositor);
-        coin::deposit<RToken<TokenType>>(depositor, lp_tokens);
+        coin::deposit<RToken<TokenType>>(depositor, receive_tokens);
     
     } 
 
 
-    /// Deposit the liquidity to the reserve and mint and deposit the lp tokens back to the user
+    /// Deposit the liquidity to the reserve and mint and deposit the receipt tokens back to the user
     public entry fun deposit_liquidity<TokenType>(sender : &signer , amount : u64) acquires Reserve {
         let admin_addr = config::ADMIN_ADDRESS();
         deposit_liquidity_<TokenType>(admin_addr, sender, amount);  
@@ -168,8 +171,8 @@ module vault::reserve {
             user_available_balance
         };
    
-        let lp_token_cap = &reserve.receipt.capabilities;
-        coin::burn_from<RToken<TokenType>>(depositor, amount, &lp_token_cap.burn_cap);
+        let receive_token_cap = &reserve.receipt.capabilities;
+        coin::burn_from<RToken<TokenType>>(depositor, amount, &receive_token_cap.burn_cap);
 
         let liquidity_tokens = &mut reserve.liquidity.liquidity_tokens;
         let extracted_tokens = coin::extract<TokenType>(liquidity_tokens, amount);
