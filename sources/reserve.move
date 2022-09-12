@@ -27,7 +27,7 @@ module vault::reserve {
     }
 
     /// Receipt token for this Reserve
-    struct RToken<phantom CoinType> has key ,store, drop { }
+    struct RToken<phantom TokenType> has key ,store, drop { }
 
 
     

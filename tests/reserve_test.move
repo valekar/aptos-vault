@@ -38,7 +38,7 @@ module vault::reserve_test {
 
     // Test Init reserve 
     #[test(source = @vault, end_user = @0x3)]
-    public fun test_init_reserve(source : &signer, end_user : &signer) {
+    public fun init_reserve_test(source : &signer, end_user : &signer) {
         init_for_testing(source, end_user);
         let balance = coin::balance<mock_coin::WETH>(signer::address_of(end_user));
         assert!(balance == 50, 0);
