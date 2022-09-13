@@ -1,4 +1,4 @@
-module example::oracle{
+module example::reserve{
 
     use vault::reserve;
 
