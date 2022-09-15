@@ -5,9 +5,10 @@ module vault::mock_coin {
     use aptos_framework::type_info;
     use std::string::{Self};
     use std::signer;
-    use aptos_framework::coins;
     use aptos_framework::account;
     //use std::debug;
+    use aptos_framework::aptos_account::{Self};
+
 
     spec module {
         pragma verify = false;
@@ -58,7 +59,7 @@ module vault::mock_coin {
         let account_addr = signer::address_of(account);
 
         if(!account::exists_at(account_addr)){
-            aptos_framework::account::create_account(account_addr);
+            aptos_framework::aptos_account::create_account(account_addr);
         };
 
         if (!coin::is_account_registered<TokenType>(account_addr)) {
@@ -87,7 +88,7 @@ module vault::mock_coin {
         let to_addr = signer::address_of(to);
         
         if(!account::exists_at(to_addr)){
-            aptos_framework::account::create_account(to_addr);
+            aptos_account::create_account(to_addr);
         };
         if (!coin::is_account_registered<TokenType>(to_addr)) {
             register<TokenType>(to);
@@ -104,7 +105,7 @@ module vault::mock_coin {
 
 
      public fun register<CoinType>(account: &signer) {
-        coins::register<CoinType>(account);
+        coin::register<CoinType>(account);
     }
 
     #[test(admin=@vault, user=@0x1234567)]

@@ -5,10 +5,9 @@ version = '1.0.0'
 
 [dependencies.AptosFramework]
 git = 'https://github.com/davidiw/aptos-core.git'
-rev = 'conversions'
+rev = 'main'
 subdir = 'aptos-move/framework/aptos-framework'
 
 
 [addresses]
-aptos_frawework = "0x1"
-vault = "0x4e6e0e7dd96db4f2d4f4ee40772d6938b202a65fd584a3bbc78e6d03a196b06c"
+vault = "0x2f6332621ecc6915b29b51958ae598ce4eea2cb4a2085162c1160a3b3897ddb7"

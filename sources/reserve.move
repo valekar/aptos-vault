@@ -5,7 +5,7 @@ module vault::reserve {
     use std::signer;
     use aptos_framework::string::{Self};
     use vault::config;
-    use aptos_framework::coins;
+    //use aptos_framework::coins;
     use std::error;
 
     const ERROR_NO_AMOUNT:u64 = 2001; 
@@ -61,7 +61,7 @@ module vault::reserve {
         let (burn_cap,freeze_cap ,mint_cap) = coin::initialize<RToken<TokenType>>(sender, name , symbol, decimals, supply_monitor);
 
         if(!coin::is_account_registered<RToken<TokenType>>(signer::address_of(sender))){
-            coins::register<RToken<TokenType>>(sender);
+            coin::register<RToken<TokenType>>(sender);
         };
 
         let receive_token_capablities = RTokenCapabalities<TokenType> {
@@ -132,7 +132,7 @@ module vault::reserve {
         let depositor = signer::address_of(sender);
 
         if(!coin::is_account_registered<RToken<TokenType>>(depositor)) {
-            coins::register<RToken<TokenType>>(sender);
+            coin::register<RToken<TokenType>>(sender);
         };
 
         config::create_account_if_not_existing(depositor);
@@ -177,7 +177,7 @@ module vault::reserve {
         let liquidity_tokens = &mut reserve.liquidity.liquidity_tokens;
         let extracted_tokens = coin::extract<TokenType>(liquidity_tokens, amount);
         if(!coin::is_account_registered<TokenType>(depositor)) {
-            coins::register<TokenType>(sender);
+            coin::register<TokenType>(sender);
         };
 
         coin::deposit<TokenType>(depositor, extracted_tokens);
