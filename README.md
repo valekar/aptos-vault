@@ -46,12 +46,12 @@ With that you should be able to access the module instructions in your code.
 5. This will create `config.yaml` file in `.aptos` folder. 
 
 
-6. For instance take a look at `.aptos.example` folder in this module. The example `config.yaml` contains the `account` as `4e6e0e7dd96db4f2d4f4ee40772d6938b202a65fd584a3bbc78e6d03a196b06c`  **Note for the security purpose do not share your .aptos folder contents to the public** 
+6. For instance take a look at `.aptos.example` folder in this module. The example `config.yaml` contains the `account` as `2f6332621ecc6915b29b51958ae598ce4eea2cb4a2085162c1160a3b3897ddb7`  **Note for the security purpose do not share your .aptos folder contents to the public** 
    
 7. Now add `account` address as the account address for `vault` in `Move.toml`. Below is an example toml configuration
 ```toml
     [addresses]
-    vault = "0x4e6e0e7dd96db4f2d4f4ee40772d6938b202a65fd584a3bbc78e6d03a196b06c"
+    vault = "0x2f6332621ecc6915b29b51958ae598ce4eea2cb4a2085162c1160a3b3897ddb7"
 ```
 
 8.  First compile and test if everything is working fine 
