@@ -10,4 +10,4 @@ subdir = 'aptos-move/framework/aptos-framework'
 
 
 [addresses]
-vault = "0x2f6332621ecc6915b29b51958ae598ce4eea2cb4a2085162c1160a3b3897ddb7"
+vault = "0x2c2ab841c038467a2d6291d35d88ab00326759c330ad60c4902e00543691d8ca"

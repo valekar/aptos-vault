@@ -1,0 +1,151 @@
+module vault::vault {
+
+    use aptos_framework::coin::{Self,Coin};
+    use std::signer;
+    use vault::config;
+    use std::error;
+
+    const ERROR_NO_AMOUNT:u64 = 2001; 
+    const ERROR_NOT_INITIALIZED: u64 = 2005;
+    const EUNAUTHORISED :u64 =  2006; 
+
+     /// vault is frozen. Coins cannot be deposited or withdrawn
+    const EFROZEN: u64 = 2007;
+
+
+    /// vault for storing the deposit of the CoinType
+    struct Vault<phantom CoinType> has key {
+        frozen : bool,
+        deposit : Coin<CoinType>,
+    }
+
+
+    /// Create vault for storing the deposit of the CoinType
+    fun  create_vault_<CoinType>(sender : &signer) {
+        config::create_account_if_not_existing(signer::address_of(sender));
+        let vault = Vault<CoinType> {
+            frozen : false,
+            deposit : coin::zero<CoinType>(),
+        };
+
+        move_to<Vault<CoinType>>(sender, vault); 
+    }
+
+
+    /// private function for depositing coins
+    fun deposit_into_vault_<CoinType>(sender : &signer, amount : u64) acquires Vault {
+
+        assert!(amount > 0 , ERROR_NO_AMOUNT);
+        let addr = signer::address_of(sender);
+
+        // create the vault if not existing for deposit
+        if(!exists<Vault<CoinType>>(addr)) {
+            create_vault_<CoinType>(sender);
+        };
+
+        let vault = borrow_global_mut<Vault<CoinType>>(addr);
+        // check if vault is frozen by admin 
+        assert!(
+            !vault.frozen,
+            error::permission_denied(EFROZEN),
+        );
+
+        let deposit_coins = &mut vault.deposit;
+        let coins = coin::withdraw<CoinType>(sender, amount);
+        coin::merge<CoinType>(deposit_coins, coins);
+
+    
+    } 
+
+
+    /// Deposit to the vault 
+    public entry fun deposit_into_vault<CoinType>(sender : &signer , amount : u64) acquires Vault {
+        deposit_into_vault_<CoinType>(sender, amount);  
+    }
+
+
+    /// private function to withdraw deposit
+    fun withdraw_from_vault_<CoinType>(sender : &signer, amount : u64) acquires Vault {
+
+        let addr = signer::address_of(sender);
+
+        assert!(amount > 0 , ERROR_NO_AMOUNT);
+        assert!(exists<Vault<CoinType>>(addr) ,ERROR_NOT_INITIALIZED);
+
+        let vault = borrow_global_mut<Vault<CoinType>>(addr);
+        // check if vault is frozen by admin 
+        assert!(
+            !vault.frozen,
+            error::permission_denied(EFROZEN),
+        );
+
+        let depositor = signer::address_of(sender);
+        let vault_coins = &mut vault.deposit;
+
+        let user_available_balance = coin::value(vault_coins);
+        // check if amount specified is correct, return amount if balance is more otherwise return available balance
+        amount = if(user_available_balance > amount) {
+            amount
+        } else {
+            user_available_balance
+        };
+   
+        let extracted_coins = coin::extract<CoinType>(vault_coins, amount);
+        
+        if(!coin::is_account_registered<CoinType>(depositor)) {
+            coin::register<CoinType>(sender);
+        };
+        coin::deposit<CoinType>(depositor, extracted_coins);
+       
+    }
+  
+    /// withdraw the deposited coins back from vault. 
+    public entry fun withdraw_from_vault<CoinType>(sender: &signer, amount : u64) acquires Vault {
+        withdraw_from_vault_<CoinType>(sender, amount);
+    }
+
+    /// private function to pausing the vault deposits
+    fun pause_vault_<CoinType>(sender : &signer, pause_account : address) acquires Vault{
+        assert!(exists<Vault<CoinType>>(pause_account) ,ERROR_NOT_INITIALIZED);
+
+        let addr = signer::address_of(sender);
+        let admin_addr = config::ADMIN_ADDRESS();
+
+        assert!(addr == admin_addr, error::permission_denied(EUNAUTHORISED));
+
+        let vault = borrow_global_mut<Vault<CoinType>>(pause_account);
+        vault.frozen = true;
+    }
+
+    /// public function to pause the vaults deposit/ withdraw
+    /// Should pass the account to be paused
+    public entry fun pause_vault<CoinType>(sender : &signer,pause_account : address) acquires Vault{
+        pause_vault_<CoinType>(sender, pause_account);
+    } 
+
+    /// private function to unpausing the vault deposits
+    fun unpause_vault_<CoinType>(sender : &signer, unpause_account : address) acquires Vault{
+        
+        assert!(exists<Vault<CoinType>>(unpause_account) ,ERROR_NOT_INITIALIZED);
+
+        let addr = signer::address_of(sender);
+        let admin_addr = config::ADMIN_ADDRESS();
+
+        assert!(addr == admin_addr, error::permission_denied(EUNAUTHORISED));
+
+        let vault = borrow_global_mut<Vault<CoinType>>(unpause_account);
+        vault.frozen = false;
+    }
+
+
+    /// public function to pause the vaults deposit/ withdraw
+    /// Should pass the account to be unpaused
+    public entry fun unpause_vault<CoinType>(sender : &signer, unpause_account : address) acquires Vault{
+        unpause_vault_<CoinType>(sender,unpause_account);
+    } 
+
+
+    
+}
+
+
