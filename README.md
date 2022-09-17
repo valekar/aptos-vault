@@ -17,7 +17,7 @@ Your can add in module dependency as shown below
 ```toml
     [dependencies.Vault]
     git = 'https://github.com/valekar/aptos-vault.git'
-    rev = 'main'
+    rev = 'develop'
 ```
 
 With that you should be able to access the module instructions in your code.
