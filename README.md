@@ -74,7 +74,7 @@ In this section we will go through the technical details of using `aptos-vault` 
 
 ### Overview
 
-The `Vault` module is a liquidity provider where users can deposit any `coins`. 
+The `Vault` module is for users to deposit any `coins`. 
 
 To withdraw deposited coins, users must specify an amount to withdraw 
 
@@ -84,7 +84,7 @@ The below image shows an overview of the architecture.
 
 ### Resources and Structs
 
-There are totally 5 struct we define for `Vault`.   
+We define for `Vault`.   
 
 ```rust 
     struct Vault<phantom CoinType> has key {
@@ -186,7 +186,7 @@ It accepts these params
 
 To understand how to use the instructions of the `Vault` module. It is recommended to go through the `vault_test.move`
 
-### Run the test cases
+#### Run the test cases
 
 To run the test cases, run the following command
 

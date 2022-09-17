@@ -4,12 +4,12 @@ version = '1.0.0'
 
 [dependencies.AptosFramework]
 git = 'https://github.com/davidiw/aptos-core.git'
-rev = 'conversions'
+rev = 'main'
 subdir = 'aptos-move/framework/aptos-framework'
 
 [dependencies.Vault]
 git = 'https://github.com/valekar/aptos-vault.git'
-rev = 'main'
+rev = 'develop'
 
 
 
