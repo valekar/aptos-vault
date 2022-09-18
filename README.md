@@ -100,11 +100,33 @@ Let us see what each field means in the above `struct` (resource)
 1. `frozen` functionality is used by admins to pause/unpause the deposition of coins into the vault
 2. `deposit` stores all users coins into this field type. It only stores the `CoinType` provided 
 
- 
+
+
+We define another struct `VaultConfig` for pausing/unpausing vault for depositing/withdrawing from Vaults of Coin type
+
+```rust
+    struct VaultConfig<phantom CoinType> has key {
+        frozen : bool,
+    }
+```
+
+If the field `frozen` is set to `true`, then the depositing/withdrawls are  paused for a Vault of CoinType
+
 
 ### Instructions
 Let us look at instructions available in `Vault` module.
 
+
+#### Initialize Vault Config
+
+Before depostion or withdrawal of any coins, `VaultConfig`  needs to be initialized. To initialize use,
+
+```rust
+    /// Initialize vault config for the CoinType
+    public entry fun initialize_vault_config<CoinType>(sender : &signer) {
+        initialize_vault_config_<CoinType>(sender);
+    }
+```
 
 #### Deposit Coins 
 
@@ -114,7 +136,7 @@ The below instruction is used for depositing to a vault
 
 ```rust 
     /// Deposit to the vault 
-    public entry fun deposit_into_vault<CoinType>(sender : &signer , amount : u64) acquires Vault {
+    public entry fun deposit_into_vault<CoinType>(sender : &signer , amount : u64) acquires Vault,VaultConfig {
         deposit_into_vault_<CoinType>(sender, amount);  
     }
 ```
@@ -131,7 +153,7 @@ To withdraw coins, the following instruction is used
 
 ```rust
     /// withdraw the deposited coins back from vault. 
-    public entry fun withdraw_from_vault<CoinType>(sender: &signer, amount : u64) acquires Vault {
+    public entry fun withdraw_from_vault<CoinType>(sender: &signer, amount : u64) acquires Vault, VaultConfig {
         withdraw_from_vault_<CoinType>(sender, amount);
     }
 ```
@@ -151,6 +173,41 @@ Only admins can pause deposits/withdrawals of coins
 The below instruction is used to pause deposit/withdaw coins
 
 ```rust
+    /// Pause the vault for the coin type
+    public entry fun pause_vault<CoinType>(sender : &signer) acquires VaultConfig {
+        pause_vault_<CoinType>(sender);
+    } 
+```
+
+It accepts these params `signer` (admin) who wants pause an 
+
+
+#### Unpause the vault
+
+This is used by admins to unpause a vault of `CoinType`. 
+
+```rust
+    /// function to unpause the vault for the coinType
+    public entry fun unpause_vault<CoinType>(sender : &signer) acquires VaultConfig {
+        unpause_vault_<CoinType>(sender);
+    }
+```
+
+It accepts these params `signer` (admin) who wants pause an 
+
+
+#### Additional Instructions
+
+In addition to the above, mentioned instructions, admins can pause/unpause deposition or withdrawals to a  `Vault` for each accounts.
+
+
+#### Pause the vault for an account
+
+Only admins can pause deposits/withdrawals of coins for an account
+
+The below instruction is used to pause deposit/withdaw coins for an account
+
+```rust
     /// public function to pause the vaults deposit/ withdraw
     /// Should pass the account to be paused
     public entry fun pause_vault<CoinType>(sender : &signer,pause_account : address) acquires Vault{
@@ -164,22 +221,23 @@ It accepts these params
 2. `pause_account` address to be paused. 
 
 
-#### Unpause the vault
+#### Unpause the vault for an account
 
-This is used by admins to unpause a vault of `CoinType`. 
+This is used by admins to unpause a vault for an account for a `CoinType`. 
 
 ```rust
     /// public function to pause the vaults deposit/ withdraw
     /// Should pass the account to be unpaused
-    public entry fun unpause_vault<CoinType>(sender : &signer, unpause_account : address) acquires Vault{
-        unpause_vault_<CoinType>(sender,unpause_account);
-    } 
+    public entry fun unpause_vault_for_account<CoinType>(sender : &signer, unpause_account : address) acquires Vault{
+        unpause_vault_for_account_<CoinType>(sender,unpause_account);
+    }
 ```
 
 It accepts these params
 
 1. `signer` (admin) who wants pause an 
 2. `unpause_account` address to be paused. 
+
 
 
 ### Test cases

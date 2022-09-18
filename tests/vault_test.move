@@ -7,10 +7,13 @@ module vault::vault_test {
     use vault::vault::{
         deposit_into_vault,
         withdraw_from_vault,
+        initialize_vault_config,
+        pause_vault_for_account,
+        unpause_vault_for_account,
         pause_vault,
         unpause_vault
-        
     };
+
     use aptos_framework::coin;
     use std::signer;
     
@@ -20,7 +23,10 @@ module vault::vault_test {
     public entry fun init_for_testing(source : &signer , end_user : &signer) {
         mock_coin::initialize<mock_coin::WETH>(source, 8);
         mock_coin::faucet_mint_to_script<mock_coin::WETH>(end_user, 50); // +50 
+        initialize_vault_config<mock_coin::WETH>(source);
     }
+
+    /********************START of  Test cases for DEPOSIT to Vault COIN TYPE ********************************/
 
       
     // Test deposit liquidity 
@@ -29,6 +35,12 @@ module vault::vault_test {
        init_for_testing(source, end_user);
        deposit_into_vault<mock_coin::WETH>(end_user , 6); 
     }
+
+    /********************END  of  Test cases for DEPOSIT to Vault COIN TYPE ********************************/
+
+
+
+    /********************START of  Test cases for Withdraw to Vault COIN TYPE ********************************/
 
 
     // Test withdraw liquidity 
@@ -44,58 +56,128 @@ module vault::vault_test {
         assert!(balance == 50 - 6 + 3, 0);
     }
 
-    // Test pausing of vault,
+    /******************** END of  Test cases for Withdraw to Vault COIN TYPE ********************************/
+
+
+
+    /******************** START of  Test cases for PAUSE/UNPAUSE for an ACCOUNT ********************************/
+
+    // Test pausing of vault for an account,
     // It fails if someone tries to deposit after pausing
     #[test(admin = @vault,end_user = @0x4 )]
     #[expected_failure(abort_code = 329687)] //// abort code is = 327680 + 2007(EFROZEN)
-    public entry fun pause_vault_deposit_test(admin : &signer, end_user : &signer) {
+    public entry fun pause_vault_for_account_deposit_test(admin : &signer, end_user : &signer) {
         init_for_testing(admin,end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
-        pause_vault<mock_coin::WETH>(admin, signer::address_of(end_user));
+        pause_vault_for_account<mock_coin::WETH>(admin, signer::address_of(end_user));
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
     }
 
-    // Test unpausing of vault,
+    // Test unpausing of vault for an account,
     // We pause anf then unpause to test both deposit and withdraw
     #[test(admin = @vault,end_user = @0x4 )]
-    public entry fun unpause_vault_deposit_and_withdraw_test(admin : &signer, end_user : &signer) {
+    public entry fun unpause_vault_for_account_deposit_and_withdraw_test(admin : &signer, end_user : &signer) {
         init_for_testing(admin,end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
-        pause_vault<mock_coin::WETH>(admin, signer::address_of(end_user));
-        unpause_vault<mock_coin::WETH>(admin, signer::address_of(end_user));
+        pause_vault_for_account<mock_coin::WETH>(admin, signer::address_of(end_user));
+        unpause_vault_for_account<mock_coin::WETH>(admin, signer::address_of(end_user));
         deposit_into_vault<mock_coin::WETH>(end_user , 6); // -6
         withdraw_from_vault<mock_coin::WETH>(end_user, 3); // +3
     }
 
-    // Test pausing of vault,
+    // Test pausing of vault for an account,
     // It fails if someone tries to withdraw after pausing
     #[test(admin = @vault,end_user = @0x4 )]
     #[expected_failure(abort_code = 329687)] // abort code is = 327680 + 2007(EFROZEN)
-    public entry fun pause_vault_withdraw_test(admin : &signer, end_user : &signer) {
+    public entry fun pause_vault_for_account_withdraw_test(admin : &signer, end_user : &signer) {
         init_for_testing(admin,end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
-        pause_vault<mock_coin::WETH>(admin, signer::address_of(end_user));
+        pause_vault_for_account<mock_coin::WETH>(admin, signer::address_of(end_user));
         withdraw_from_vault<mock_coin::WETH>(end_user, 3); // +3
     }
 
 
-    // Only admins can pause the vault
+    // Only admins can pause the vault for an account
     #[test(admin = @vault,end_user = @0x4 )]
     #[expected_failure(abort_code = 329686)] // abort code is = 327680 + 2006(EUNAUTHORISED)
+    public entry fun only_admins_pause_vault_for_account_test(admin : &signer, end_user : &signer) {
+        init_for_testing(admin,end_user);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+        pause_vault_for_account<mock_coin::WETH>(end_user, signer::address_of(end_user));
+    }
+
+    // only admins can unpause the vault for an account
+    #[test(admin = @vault,end_user = @0x4 )]
+    #[expected_failure(abort_code = 329686)] // abort code is = 327680 + 2006(EUNAUTHORISED)
+    public entry fun only_admins_unpause_vault_for_account_test(admin : &signer, end_user : &signer) {
+        init_for_testing(admin,end_user);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+        unpause_vault_for_account<mock_coin::WETH>(end_user, signer::address_of(end_user));
+    }
+
+    /********************END of  Test cases for PAUSE/UNPAUSE for an ACCOUNT ********************************/
+
+
+
+    /********************START of  Test cases for PAUSE/UNPAUSE for an COIN TYPE ********************************/
+
+
+     // Test pausing of vault for Coin Type,
+    // It fails if someone tries to deposit after pausing
+    #[test(admin = @vault,end_user = @0x4 )]
+    #[expected_failure] 
+    public entry fun pause_vault_deposit_test(admin : &signer, end_user : &signer) {
+        init_for_testing(admin,end_user);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+        pause_vault<mock_coin::WETH>(admin);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+    }
+    
+
+    // Test unpausing of vault for Coin Type,
+    // We pause and then unpause to test both deposit and withdraw
+    #[test(admin = @vault,end_user = @0x4 )]
+    public entry fun unpause_vault_deposit_and_withdraw_test(admin : &signer, end_user : &signer) {
+        init_for_testing(admin,end_user);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+        pause_vault<mock_coin::WETH>(admin);
+        unpause_vault<mock_coin::WETH>(admin);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6); // -6
+        withdraw_from_vault<mock_coin::WETH>(end_user, 3); // +3
+    }
+
+
+    // Test pausing of vault for an account,
+    // It fails if someone tries to withdraw after pausing
+    #[test(admin = @vault,end_user = @0x4 )]
+    #[expected_failure] 
+    public entry fun pause_vault_withdraw_test(admin : &signer, end_user : &signer) {
+        init_for_testing(admin,end_user);
+        deposit_into_vault<mock_coin::WETH>(end_user , 6);
+        pause_vault<mock_coin::WETH>(admin);
+        withdraw_from_vault<mock_coin::WETH>(end_user, 3); // +3
+    }
+
+
+    // Only admins can pause the vault for an account
+    #[test(admin = @vault,end_user = @0x4 )]
+    #[expected_failure] 
     public entry fun only_admins_pause_vault_test(admin : &signer, end_user : &signer) {
         init_for_testing(admin,end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
-        pause_vault<mock_coin::WETH>(end_user, signer::address_of(end_user));
+        pause_vault<mock_coin::WETH>(end_user);
     }
 
-    // only admins can unpause the vault
+    // only admins can unpause the vault for an account
     #[test(admin = @vault,end_user = @0x4 )]
     #[expected_failure(abort_code = 329686)] // abort code is = 327680 + 2006(EUNAUTHORISED)
     public entry fun only_admins_unpause_vault_test(admin : &signer, end_user : &signer) {
         init_for_testing(admin,end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);
-        unpause_vault<mock_coin::WETH>(end_user, signer::address_of(end_user));
+        unpause_vault<mock_coin::WETH>(end_user);
     }
+
+     /********************END of  Test cases for PAUSE/UNPAUSE for an COIN TYPE ********************************/
 
 
 }
