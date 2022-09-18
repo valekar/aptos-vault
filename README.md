@@ -84,7 +84,9 @@ The below image shows an overview of the architecture.
 
 ### Resources and Structs
 
-We define for `Vault`.   
+#### Struct Vault.   
+
+`Vault` struct stores users coin of an initialized coin type
 
 ```rust 
     struct Vault<phantom CoinType> has key {
@@ -102,6 +104,7 @@ Let us see what each field means in the above `struct` (resource)
 
 
 
+#### Struct VaultConfig. 
 We define another struct `VaultConfig` for pausing/unpausing vault for depositing/withdrawing from Vaults of Coin type
 
 ```rust
