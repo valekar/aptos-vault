@@ -20,7 +20,7 @@ Your can add in module dependency as shown below
     rev = 'develop'
 ```
 
-With that you should be able to access the module instructions in your code.
+With that, you should be able to access the module instructions in your code.
 
 
 ## How to deploy vault module? 
@@ -38,7 +38,7 @@ With that you should be able to access the module instructions in your code.
 ```
 
 
-4. First check if you `.aptos` folder in the module. If not, run the following to instantiate in the module folder an account. 
+4. First check if you `.aptos` folder in the module. If not, run the following to instantiate an account in the module folder . 
 ```bash
     aptos init
 ```
@@ -58,7 +58,7 @@ With that you should be able to access the module instructions in your code.
 ```bash
     aptos move test && aptos move compile
 ```
-9. Fund your aptos wallet account by running the following command
+9. (Optional)Fund your aptos wallet account by running the following command
 ```bash
     aptos account fund-with-faucet --account 0x65a78e4b038409443bdcee8af4d3fdc886e8bb8418c4c83f4a09291d2e06a498
 ```
@@ -113,7 +113,7 @@ We define another struct `VaultConfig` for pausing/unpausing vault for depositin
     }
 ```
 
-If the field `frozen` is set to `true`, then the depositing/withdrawls are  paused for a Vault of CoinType
+If the field `frozen` is set to `true`, then the depositing/withdrawals are  paused for a Vault of CoinType
 
 
 ### Instructions
@@ -197,50 +197,6 @@ This is used by admins to unpause a vault of `CoinType`.
 ```
 
 It accepts these params `signer` (admin) who wants pause an 
-
-
-#### Additional Instructions
-
-In addition to the above, mentioned instructions, admins can pause/unpause deposition or withdrawals to a  `Vault` for each accounts.
-
-
-#### Pause the vault for an account
-
-Only admins can pause deposits/withdrawals of coins for an account
-
-The below instruction is used to pause deposit/withdaw coins for an account
-
-```rust
-    /// public function to pause the vaults deposit/ withdraw
-    /// Should pass the account to be paused
-    public entry fun pause_vault<CoinType>(sender : &signer,pause_account : address) acquires Vault{
-        pause_vault_<CoinType>(sender, pause_account);
-    } 
-```
-
-It accepts these params
-
-1. `signer` (admin) who wants pause an 
-2. `pause_account` address to be paused. 
-
-
-#### Unpause the vault for an account
-
-This is used by admins to unpause a vault for an account for a `CoinType`. 
-
-```rust
-    /// public function to pause the vaults deposit/ withdraw
-    /// Should pass the account to be unpaused
-    public entry fun unpause_vault_for_account<CoinType>(sender : &signer, unpause_account : address) acquires Vault{
-        unpause_vault_for_account_<CoinType>(sender,unpause_account);
-    }
-```
-
-It accepts these params
-
-1. `signer` (admin) who wants pause an 
-2. `unpause_account` address to be paused. 
-
 
 
 ### Test cases
