@@ -55,14 +55,14 @@ module vault::vault_test {
 
     // Test withdraw from vault 
     #[test(source = @vault , end_user = @0x4 )]
-    #[expected_failure(abort_code = 2008)] 
+    //#[expected_failure(abort_code = 2008)] 
     public entry fun withdraw_more_from_vault_test(source : &signer , end_user : &signer){
         init_for_testing(source, end_user);
         deposit_into_vault<mock_coin::WETH>(end_user , 6);  // -6 
         withdraw_from_vault<mock_coin::WETH>(end_user, 7);  // should error out here
 
         let balance = coin::balance<mock_coin::WETH>(signer::address_of(end_user));
-        assert!(balance == 50 - 6 + 3, 0);
+        assert!(balance == 50 - 6, 0);
     }
 
     /******************** END of  Test cases for Withdraw to Vault COIN TYPE ********************************/

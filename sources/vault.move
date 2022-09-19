@@ -4,6 +4,11 @@ module vault::vault {
     use std::signer;
     use vault::config;
     use std::error;
+    use aptos_std::event::{Self,EventHandle};
+    use aptos_framework::account;
+    use aptos_framework::string::{Self, String};
+    use std::option;
+
 
     const ERROR_NO_AMOUNT:u64 = 2001; 
     const ERROR_NOT_INITIALIZED: u64 = 2005;
@@ -21,7 +26,16 @@ module vault::vault {
 
     struct VaultConfig<phantom CoinType> has key {
         frozen : bool,
+        vault_event : EventHandle<VaultEvent>
     }
+
+    /// Event emitted when some amount of a coinType is deposited or withdrawn into an account.
+    struct VaultEvent has drop, store {
+        msg : String,
+        amount : option::Option<u64>
+
+    }
+
 
     /// Private function 
     /// Initialize vault config for the CoinType 
@@ -33,6 +47,7 @@ module vault::vault {
 
         let vault_config = VaultConfig<CoinType> {
             frozen : false,
+            vault_event :  account::new_event_handle(sender)
         };
         move_to<VaultConfig<CoinType>>(sender, vault_config);
 
@@ -53,6 +68,13 @@ module vault::vault {
         let vault_config = borrow_global_mut<VaultConfig<CoinType>>(addr);
 
         vault_config.frozen = true;
+
+        // emit paused event
+        let event_handler = &mut vault_config.vault_event;
+        event::emit_event<VaultEvent>(event_handler, VaultEvent {
+            msg :  string::utf8(b"Success : Paused Vault"),
+            amount : option::none()
+        });
     }
 
     /// Pause the vault for the coin type
@@ -70,6 +92,14 @@ module vault::vault {
         let vault_config = borrow_global_mut<VaultConfig<CoinType>>(addr);
 
         vault_config.frozen = false;
+
+        // emit unpaused event
+        let event_handler = &mut vault_config.vault_event;
+        event::emit_event<VaultEvent>(event_handler, VaultEvent {
+            msg :  string::utf8(b"Success : Unpaused Vault"),
+            amount : option::none()
+        });
+
     }
 
     /// function to unpause the vault for the coinType
@@ -132,6 +162,14 @@ module vault::vault {
         let coins = coin::withdraw<CoinType>(sender, amount);
         coin::merge<CoinType>(deposit_coins, coins);
 
+        let admin_addr = config::ADMIN_ADDRESS();
+        let vault_config = borrow_global_mut<VaultConfig<CoinType>>(admin_addr);
+        let event_handler = &mut vault_config.vault_event;
+        // emit deposit event
+        event::emit_event<VaultEvent>(event_handler, VaultEvent {
+            msg :  string::utf8(b"Success : Deposited into the Vault"),
+            amount : option::some(amount)
+        });
     
     } 
 
@@ -157,17 +195,33 @@ module vault::vault {
         let depositor = signer::address_of(sender);
         let vault_coins = &mut vault.deposit;
 
-
         let user_available_balance = coin::value(vault_coins);
 
-        assert!(user_available_balance > amount, EINSUFFICIENT_BALANCE);
+        let admin_addr = config::ADMIN_ADDRESS();
+        let vault_config = borrow_global_mut<VaultConfig<CoinType>>(admin_addr);
+        let event_handler = &mut vault_config.vault_event;
 
-        let extracted_coins = coin::extract<CoinType>(vault_coins, amount);
-        
-        if(!coin::is_account_registered<CoinType>(depositor)) {
-            coin::register<CoinType>(sender);
-        };
-        coin::deposit<CoinType>(depositor, extracted_coins);      
+        if(user_available_balance < amount) {
+            event::emit_event<VaultEvent>(event_handler, VaultEvent {
+                msg :  string::utf8(b"Failure : Unable to withdraw from the Vault"),
+                amount : option::some(amount)
+            });  
+            //assert!(user_available_balance > amount, EINSUFFICIENT_BALANCE);
+        } 
+        else {
+            let extracted_coins = coin::extract<CoinType>(vault_coins, amount);
+            
+            if(!coin::is_account_registered<CoinType>(depositor)) {
+                coin::register<CoinType>(sender);
+            };
+            coin::deposit<CoinType>(depositor, extracted_coins); 
+
+            // emit succeful withdraw event
+            event::emit_event<VaultEvent>(event_handler, VaultEvent {
+                msg :  string::utf8(b"Success : Withdraw from the Vault"),
+                amount : option::some(amount)
+            }); 
+        }    
     }
   
     /// Withdraw the deposited coins back from vault. 
