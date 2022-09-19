@@ -10,8 +10,8 @@ module vault::vault {
     use std::option;
 
 
-    const ERROR_NO_AMOUNT:u64 = 2001; 
-    const ERROR_NOT_INITIALIZED: u64 = 2005;
+    const ENO_AMOUNT:u64 = 2001; 
+    const ENOT_INITIALIZED: u64 = 2005;
     const EUNAUTHORISED :u64 =  2006; 
     const EINSUFFICIENT_BALANCE : u64 = 2008;
 
@@ -111,7 +111,7 @@ module vault::vault {
     /// Assert if the vault is configured for the coinType
     fun assert_vault_configered<CoinType>() {
         let admin_addr = config::ADMIN_ADDRESS();
-        assert!(exists<VaultConfig<CoinType>>(admin_addr), ERROR_NOT_INITIALIZED);
+        assert!(exists<VaultConfig<CoinType>>(admin_addr), ENOT_INITIALIZED);
     }
 
     /// Private function 
@@ -148,7 +148,7 @@ module vault::vault {
         // assert vault not frozen for coin type 
         assert_vault_not_frozen<CoinType>();
 
-        assert!(amount > 0 , ERROR_NO_AMOUNT);
+        assert!(amount > 0 , ENO_AMOUNT);
         let addr = signer::address_of(sender);
 
         // create the vault if not existing for deposit
@@ -187,8 +187,8 @@ module vault::vault {
         
         let addr = signer::address_of(sender);
 
-        assert!(amount > 0 , ERROR_NO_AMOUNT);
-        assert!(exists<Vault<CoinType>>(addr) ,ERROR_NOT_INITIALIZED);
+        assert!(amount > 0 , ENO_AMOUNT);
+        assert!(exists<Vault<CoinType>>(addr) ,ENOT_INITIALIZED);
 
         let vault = borrow_global_mut<Vault<CoinType>>(addr);
 
