@@ -202,8 +202,9 @@ module vault::vault {
         let event_handler = &mut vault_config.vault_event;
 
         if(user_available_balance < amount) {
+            // emit failure withdraw event
             event::emit_event<VaultEvent>(event_handler, VaultEvent {
-                msg :  string::utf8(b"Failure : Unable to withdraw from the Vault"),
+                msg :  string::utf8(b"Failure : Unable to withdraw from the Vault. The specified amount is greater than available balance"),
                 amount : option::some(amount)
             });  
             //assert!(user_available_balance > amount, EINSUFFICIENT_BALANCE);
@@ -216,7 +217,7 @@ module vault::vault {
             };
             coin::deposit<CoinType>(depositor, extracted_coins); 
 
-            // emit succeful withdraw event
+            // emit successful withdraw event
             event::emit_event<VaultEvent>(event_handler, VaultEvent {
                 msg :  string::utf8(b"Success : Withdraw from the Vault"),
                 amount : option::some(amount)
